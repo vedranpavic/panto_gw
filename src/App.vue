@@ -953,9 +953,14 @@ const calculateTeamProgress = (team) => {
         <!-- Epic Header -->
         <div @click="toggleEpic(epic.id)" class="corporate-dark-bg p-5 text-white flex justify-between items-center cursor-pointer select-none hover:opacity-98 transition-opacity relative">
           <div class="flex items-center gap-3 z-10">
-            <span class="text-sm font-bold text-emerald-400 transition-transform duration-200" :class="openEpics.includes(epic.id) ? 'transform rotate-90' : ''">▶</span>
+            <svg
+              viewBox="0 0 24 24"
+              class="h-3.5 w-3.5 shrink-0 text-emerald-400 transition-transform duration-200"
+              :class="openEpics.includes(epic.id) ? 'rotate-90' : ''"
+              fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+            ><path d="M9 6l6 6-6 6" /></svg>
             <span class="text-[10px] font-bold alliander-bg text-white px-2 py-0.5 rounded tracking-wider uppercase">Epic</span>
-            <span class="font-bold text-lg tracking-tight text-white">{{ epic.title }}</span>
+            <span class="font-semibold text-lg tracking-tight text-white">{{ epic.title }}</span>
             <span class="text-slate-400 text-xs font-mono">({{ epic.jiraKey }})</span>
           </div>
 
@@ -1063,7 +1068,7 @@ const calculateTeamProgress = (team) => {
 <style>
 .alliander-bg { background-color: #00B064 !important; }
 .alliander-text { color: #00B064 !important; }
-.corporate-dark-bg { background-color: #001A3D !important; }
+.corporate-dark-bg { background-color: #111827 !important; }
 
 .status-done { background-color: rgba(16, 185, 129, 0.1) !important; }
 .status-ontrack { background-color: rgba(59, 130, 246, 0.1) !important; }
