@@ -220,6 +220,14 @@ const excelMapping = ref({})
 const excelError = ref('')
 const excelCancelledCount = ref(0)
 
+// Inklapbaar Excel-configuratiepaneel (RTE-modus): eenmaal ingesteld hoeft
+// een RTE dit niet steeds open te laten staan terwijl ze het dashboard bekijken.
+const EXCEL_PANEL_STORAGE_KEY = 'art-dashboard-excel-panel-open'
+const showExcelConfig = ref(true)
+watch(showExcelConfig, (value) => {
+  try { localStorage.setItem(EXCEL_PANEL_STORAGE_KEY, String(value)) } catch { /* ignore */ }
+})
+
 const isMappingComplete = computed(() =>
   MAPPING_FIELD_DEFS.filter(f => f.required).every(f => excelMapping.value[f.key])
 )
@@ -489,6 +497,11 @@ onMounted(() => {
   applyDarkClass()
 
   try {
+    const storedPanelOpen = localStorage.getItem(EXCEL_PANEL_STORAGE_KEY)
+    if (storedPanelOpen !== null) showExcelConfig.value = storedPanelOpen === 'true'
+  } catch { /* ignore */ }
+
+  try {
     if (localStorage.getItem(RTE_ACTIVE_STORAGE_KEY) === 'true') {
       isRte.value = true
       rtePassword.value = localStorage.getItem(RTE_SECRET_STORAGE_KEY) || ''
@@ -756,46 +769,71 @@ const calculateTeamProgress = (team) => {
     </div>
 
     <!-- Excel-importpaneel: geavanceerde instelling, alleen voor RTE's -->
-    <div v-if="sourceMode === 'excel' && isRte" class="mb-6 rounded-lg border border-gray-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-800">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="text-xs text-slate-600 dark:text-slate-400">
-          <span v-if="excelFileName">Bestand: <span class="font-semibold text-slate-800 dark:text-slate-200">{{ excelFileName }}</span> ({{ excelRows.length }} rijen)</span>
-          <span v-else>Nog geen Excel-bestand gekozen.</span>
+    <div v-if="sourceMode === 'excel' && isRte" class="mb-6 rounded-lg border border-gray-200 bg-white dark:bg-slate-900 dark:border-slate-800 overflow-hidden">
+      <div
+        @click="showExcelConfig = !showExcelConfig"
+        class="flex flex-wrap items-center justify-between gap-3 p-4 cursor-pointer select-none hover:bg-gray-50/60 dark:hover:bg-slate-800/40 transition-colors"
+        :class="showExcelConfig ? 'border-b border-gray-100 dark:border-slate-800' : ''"
+      >
+        <div class="flex items-center gap-2.5 min-w-0">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-slate-500 transition-transform duration-200"
+            :class="showExcelConfig ? 'rotate-90' : ''"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          ><path d="M9 6l6 6-6 6" /></svg>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 shrink-0">Excel-configuratie</span>
+          <span v-if="!showExcelConfig" class="text-xs text-slate-500 dark:text-slate-400 truncate">
+            <span v-if="excelFileName">{{ excelFileName }}</span>
+            <span v-else>Nog geen Excel-bestand gekozen</span>
+          </span>
         </div>
-        <label class="text-xs font-semibold px-3 py-1.5 bg-white border border-gray-300 rounded-md shadow-xs hover:bg-gray-50 transition-colors cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700">
-          {{ excelFileName ? 'Ander bestand kiezen' : 'Bestand kiezen (.xlsx)' }}
-          <input type="file" accept=".xlsx,.xls" class="hidden" @change="onExcelFileSelected" />
-        </label>
+        <span v-if="!showExcelConfig && dataSource === 'excel' && excelPublishedAt" class="text-xs text-gray-400 dark:text-slate-500 shrink-0">
+          Gepubliceerd op {{ new Date(excelPublishedAt).toLocaleString('nl-NL') }}
+        </span>
       </div>
 
-      <div v-if="excelError" class="mt-3 text-xs font-medium text-red-600 dark:text-red-400">{{ excelError }}</div>
-      <div v-if="dataSource === 'excel' && excelCancelledCount > 0" class="mt-2 text-xs text-gray-400 dark:text-slate-500">
-        {{ excelCancelledCount }} geannuleerde feature(s) overgeslagen (niet meegeteld in de voortgang).
-      </div>
-      <div v-if="dataSource === 'excel' && excelPublishedAt" class="mt-2 text-xs text-gray-400 dark:text-slate-500">
-        Gepubliceerd voor iedereen op {{ new Date(excelPublishedAt).toLocaleString('nl-NL') }}.
-      </div>
-
-      <div v-if="excelHeaders.length > 0" class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-800">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-2">Kolommen koppelen</div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          <div v-for="field in MAPPING_FIELD_DEFS" :key="field.key">
-            <label class="block text-[10px] font-semibold text-gray-500 dark:text-slate-400 mb-1">
-              {{ field.label }}<span v-if="field.required" class="text-red-500"> *</span>
-            </label>
-            <select v-model="excelMapping[field.key]" class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
-              <option value="">— geen —</option>
-              <option v-for="h in excelHeaders" :key="h" :value="h">{{ h }}</option>
-            </select>
+      <div v-show="showExcelConfig" class="p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-600 dark:text-slate-400">
+            <span v-if="excelFileName">Bestand: <span class="font-semibold text-slate-800 dark:text-slate-200">{{ excelFileName }}</span> ({{ excelRows.length }} rijen)</span>
+            <span v-else>Nog geen Excel-bestand gekozen.</span>
           </div>
+          <label class="text-xs font-semibold px-3 py-1.5 bg-white border border-gray-300 rounded-md shadow-xs hover:bg-gray-50 transition-colors cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700">
+            {{ excelFileName ? 'Ander bestand kiezen' : 'Bestand kiezen (.xlsx)' }}
+            <input type="file" accept=".xlsx,.xls" class="hidden" @change="onExcelFileSelected" />
+          </label>
         </div>
-        <button
-          @click="applyExcelMapping"
-          :disabled="!isMappingComplete"
-          class="mt-4 text-xs font-semibold px-3 py-1.5 alliander-bg text-white rounded-md shadow-xs hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Publiceren voor iedereen
-        </button>
+
+        <div v-if="excelError" class="mt-3 text-xs font-medium text-red-600 dark:text-red-400">{{ excelError }}</div>
+        <div v-if="dataSource === 'excel' && excelCancelledCount > 0" class="mt-2 text-xs text-gray-400 dark:text-slate-500">
+          {{ excelCancelledCount }} geannuleerde feature(s) overgeslagen (niet meegeteld in de voortgang).
+        </div>
+        <div v-if="dataSource === 'excel' && excelPublishedAt" class="mt-2 text-xs text-gray-400 dark:text-slate-500">
+          Gepubliceerd voor iedereen op {{ new Date(excelPublishedAt).toLocaleString('nl-NL') }}.
+        </div>
+
+        <div v-if="excelHeaders.length > 0" class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-800">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-2">Kolommen koppelen</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div v-for="field in MAPPING_FIELD_DEFS" :key="field.key">
+              <label class="block text-[10px] font-semibold text-gray-500 dark:text-slate-400 mb-1">
+                {{ field.label }}<span v-if="field.required" class="text-red-500"> *</span>
+              </label>
+              <select v-model="excelMapping[field.key]" class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
+                <option value="">— geen —</option>
+                <option v-for="h in excelHeaders" :key="h" :value="h">{{ h }}</option>
+              </select>
+            </div>
+          </div>
+          <button
+            @click="applyExcelMapping"
+            :disabled="!isMappingComplete"
+            class="mt-4 text-xs font-semibold px-3 py-1.5 alliander-bg text-white rounded-md shadow-xs hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Publiceren voor iedereen
+          </button>
+        </div>
       </div>
     </div>
 
