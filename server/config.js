@@ -55,7 +55,14 @@ export const config = {
 
   // How long a fetched hierarchy is cached in memory before Jira is hit again.
   cacheTtlMs: Number(process.env.CACHE_TTL_MS) || 120_000,
+
+  // RTE-modus: gate voor wie het Excel-uploadpaneel mag gebruiken en
+  // gepubliceerde data mag overschrijven. Alleen server-side bekend,
+  // nooit in de frontend-bundle.
+  rtePassword: required('RTE_PASSWORD'),
 }
 
 export const isJiraConfigured = () =>
   Boolean(config.jira.baseUrl && config.jira.email && config.jira.apiToken)
+
+export const isRteConfigured = () => Boolean(config.rtePassword)
