@@ -677,42 +677,43 @@ const calculateTeamProgress = (team) => {
 
         <div class="hidden sm:block h-6 w-px bg-gray-300 dark:bg-slate-700"></div>
 
-        <!-- Weergave-acties: visueel als één toolbar-groep -->
-        <div class="inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs divide-x divide-gray-300 dark:divide-slate-700 overflow-hidden">
+        <!-- Weergave-acties: subtiele ghost-iconknoppen, geen rand/achtergrond
+             tot je hovert — dit zijn terloopse hulpacties, geen hoofdknoppen. -->
+        <div class="flex items-center gap-0.5">
           <button
             v-if="sourceMode === 'jira'"
             @click="loadHierarchy(true)"
             :disabled="isLoading"
             title="Ververs Jira-data"
-            class="h-8 px-3 text-xs font-semibold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+            aria-label="Ververs Jira-data"
+            class="h-8 w-8 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg viewBox="0 0 24 24" class="h-4 w-4" :class="{ 'animate-spin': isLoading }" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12a9 9 0 1 1-3-6.7" />
               <path d="M21 3v6h-6" />
             </svg>
-            Vernieuwen
           </button>
           <button
             @click="expandAll"
             title="Alles uitklappen"
-            class="h-8 px-3 text-xs font-semibold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors inline-flex items-center gap-1.5"
+            aria-label="Alles uitklappen"
+            class="h-8 w-8 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M7 8l5 5 5-5" />
               <path d="M7 15l5 5 5-5" />
             </svg>
-            Alles uitklappen
           </button>
           <button
             @click="collapseAll"
             title="Alles inklappen"
-            class="h-8 px-3 text-xs font-semibold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors inline-flex items-center gap-1.5"
+            aria-label="Alles inklappen"
+            class="h-8 w-8 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M7 16l5-5 5 5" />
               <path d="M7 9l5-5 5 5" />
             </svg>
-            Alles inklappen
           </button>
         </div>
       </div>
